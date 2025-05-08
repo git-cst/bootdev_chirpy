@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"net/http"
 	"sync/atomic"
+
+	"github.com/git-cst/bootdev_chirpy/internal/database"
+	"github.com/git-cst/bootdev_chirpy/internal/httputil"
 )
 
 type ApiConfig struct {
 	fileserverHits atomic.Int32
+	Db             *database.Queries
+	Platform       string
 }
 
 func (cfg *ApiConfig) MiddlewareMetricsInc(next http.Handler) http.Handler {
@@ -25,29 +30,45 @@ const MetricsTemplate = `<html>
 </html>`
 
 func (cfg *ApiConfig) HandlerShowMetrics(w http.ResponseWriter, r *http.Request) {
-	// Set Header
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	// Write status code
 	w.WriteHeader(http.StatusOK)
 
 	response := fmt.Sprintf(MetricsTemplate, cfg.fileserverHits.Load())
-
-	// Write response body
 	w.Write([]byte(response))
 }
 
 func (cfg *ApiConfig) HandlerResetMetrics(w http.ResponseWriter, r *http.Request) {
-	// Set Header
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	if cfg.Platform != "dev" {
+		httputil.ErrorHandleValidation(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 
-	// Write status code
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
 	cfg.fileserverHits.Store(0)
-
 	response := fmt.Sprintf("Hits reset to %d\n", cfg.fileserverHits.Load())
-
-	// Write response body
 	w.Write([]byte(response))
+}
+
+func (cfg *ApiConfig) HandlerResetUsers(w http.ResponseWriter, r *http.Request) {
+	if cfg.Platform != "dev" {
+		httputil.ErrorHandleValidation(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	ctx := r.Context()
+	err := cfg.Db.ResetUsers(ctx)
+	if err != nil {
+		httputil.ErrorHandleValidation(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	respBody := struct {
+		Message string `json:"message"`
+	}{
+		Message: "Users reset",
+	}
+
+	httputil.RespondWithJSON(w, respBody, http.StatusOK)
 }
