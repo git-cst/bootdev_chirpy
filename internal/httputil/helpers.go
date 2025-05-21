@@ -9,7 +9,7 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
-func ErrorHandleValidation(w http.ResponseWriter, msg string, statusCode int) {
+func RespondWithError(w http.ResponseWriter, msg string, statusCode int) {
 	respBody := errorResponse{
 		Error: msg,
 	}
@@ -32,7 +32,7 @@ func RespondWithJSON(w http.ResponseWriter, data interface{}, statusCode int) {
 	dat, err := json.Marshal(data)
 	if err != nil {
 		// If marshalling fails, fall back to the error handler
-		ErrorHandleValidation(w, "Internal server error", http.StatusInternalServerError)
+		RespondWithError(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 

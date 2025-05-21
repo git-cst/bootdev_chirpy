@@ -41,8 +41,12 @@ func main() {
 
 	mux.Handle("/app/", apiConfig.MiddlewareMetricsInc(http.StripPrefix("/app", fileServer)))
 	mux.HandleFunc("GET /api/healthz", handlers.HandlerReadiness)
-	mux.HandleFunc("POST /api/validate_chirp", handlers.HandlerValidate)
 	mux.HandleFunc("POST /api/users", handlers.MakeHandlerWithConfig(apiConfig, handlers.HandlerUsers))
+
+	/* chirp commands */
+	mux.HandleFunc("POST /api/chirps", handlers.MakeHandlerWithConfig(apiConfig, handlers.HandlerPostChirp))
+	mux.HandleFunc("GET /api/chirps", handlers.MakeHandlerWithConfig(apiConfig, handlers.HandlerGetChirps))
+	mux.HandleFunc("GET /api/chirps/{chirpID}", handlers.MakeHandlerWithConfig(apiConfig, handlers.HandlerGetChirp))
 
 	/* admin commands */
 	mux.HandleFunc("GET /admin/metrics", apiConfig.HandlerShowMetrics)

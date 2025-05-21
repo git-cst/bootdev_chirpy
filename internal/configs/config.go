@@ -39,7 +39,7 @@ func (cfg *ApiConfig) HandlerShowMetrics(w http.ResponseWriter, r *http.Request)
 
 func (cfg *ApiConfig) HandlerResetMetrics(w http.ResponseWriter, r *http.Request) {
 	if cfg.Platform != "dev" {
-		httputil.ErrorHandleValidation(w, "Forbidden", http.StatusForbidden)
+		httputil.RespondWithError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -53,14 +53,14 @@ func (cfg *ApiConfig) HandlerResetMetrics(w http.ResponseWriter, r *http.Request
 
 func (cfg *ApiConfig) HandlerResetUsers(w http.ResponseWriter, r *http.Request) {
 	if cfg.Platform != "dev" {
-		httputil.ErrorHandleValidation(w, "Forbidden", http.StatusForbidden)
+		httputil.RespondWithError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
 	ctx := r.Context()
 	err := cfg.Db.ResetUsers(ctx)
 	if err != nil {
-		httputil.ErrorHandleValidation(w, err.Error(), http.StatusInternalServerError)
+		httputil.RespondWithError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

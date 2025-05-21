@@ -30,7 +30,7 @@ func HandlerUsers(w http.ResponseWriter, r *http.Request, c *configs.ApiConfig) 
 	w.Header().Set("Content-Type", "application/json")
 
 	if err != nil {
-		httputil.ErrorHandleValidation(w, "Something went wrong", http.StatusInternalServerError)
+		httputil.RespondWithError(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 
@@ -39,11 +39,11 @@ func HandlerUsers(w http.ResponseWriter, r *http.Request, c *configs.ApiConfig) 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			if pqErr.Code == "23505" { // unique_violation code
-				httputil.ErrorHandleValidation(w, "User already exists", http.StatusBadRequest)
+				httputil.RespondWithError(w, "User already exists", http.StatusBadRequest)
 				return
 			}
 			// all other errors
-			httputil.ErrorHandleValidation(w, "Something went wrong", http.StatusInternalServerError)
+			httputil.RespondWithError(w, "Something went wrong", http.StatusInternalServerError)
 			return
 		}
 	}
